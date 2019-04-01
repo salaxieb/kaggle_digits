@@ -13,7 +13,9 @@ Some trics for kaggle mnist data recognition competition
 ### Architechture
 
 **Input:** (60000, 784, 1) (60000 images shape = 28x28)
+
 **Hidden:** Iteratively changing hidden layer size
+
 **Output:** One hot vector with 10 labels (0..9)
 
 ![screenshot](screenshots/mlp.png?raw=true)
@@ -33,6 +35,6 @@ For human it makes digits less recognisible, but for NN digits start to look mor
 
 ![screenshot](screenshots/results.png?raw=true)
 
-## **~3% improovement compare to same architechture, without preprocessing**
+## **~5% improovement compare to same architechture, without preprocessing**
 
 !important: no improovement in case of usage CNN
