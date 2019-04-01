@@ -1,15 +1,19 @@
+import tensorflow
 from keras.datasets import mnist # subroutines for fetching the MNIST dataset
 from keras.models import Model # basic class for specifying and training a neural network
 from keras.layers import Input, Dense # the two types of neural network layer we will be using
 from keras.utils import np_utils # utilities for one-hot encoding of ground truth values
 import matplotlib.pyplot as plt
 import scipy
+from scipy import misc
 
-
+print("imported")
 
 import numpy as np
 
 def Rotate_to_vertical(Pic):
+#     plt.imshow(Pic, cmap='gray')
+#     plt.show()
     angle = 10
     flag_optimal = False
     Horizontal_Sum = Pic.sum (axis=0)
@@ -41,20 +45,42 @@ def Rotate_to_vertical(Pic):
         else:
             Pic = rotated_Pic
             current_width = rotated_width
-    #plt.imshow(Pic, cmap='gray')
-    #plt.show()
+    
     
     return Pic
 
-
-def NormalX (X, num_pics):
-
-    Normilized_X = np.empty((num_pics,28,28))
+def RotateX (X, num_pics):
+    Rotated_X = np.empty((num_pics,28,28))
     j = 0
     for Pic in X:
+        Pic = Pic.copy()
+        
+#         plt.imshow(Pic, cmap='gray')
+#         plt.show()
+        size_X = np.size(X,2)
+        size_Y = np.size(X,1)
+        A = Pic > np.ones((size_Y, size_X))*150;    
+        Pic = Pic * A
         
         #plt.imshow(Pic, cmap='gray')
         #plt.show()
+        Pic = Rotate_to_vertical(Pic)
+        
+        Rotated_X[j:j+1,:,:] = Pic
+        if j % 1000 == 1:
+            print ((j-1)/1000)
+        j += 1
+    
+    return Rotated_X
+
+def NormalX (X, num_pics):
+    Normilized_X = np.empty((num_pics,28,28))
+    j = 0
+    for Pic in X:
+        Pic = Pic.copy()
+        
+#         plt.imshow(Pic, cmap='gray')
+#         plt.show()
         size_X = np.size(X,2)
         size_Y = np.size(X,1)
         A = Pic > np.ones((size_Y, size_X))*150;    
@@ -97,8 +123,8 @@ def NormalX (X, num_pics):
                 Mid_Value = np.add(Pic[:,i_row:i_row+1],Pic[:,i_row+1:i_row+2])/2
                 Pic = np.concatenate((Pic[:,0:i_row+1], Mid_Value, Pic[:,i_row+1:]), axis=1)
         
-        #plt.imshow(Pic, cmap='gray')
-        #plt.show()
+#         plt.imshow(Pic, cmap='gray')
+#         plt.show()
         #print (np.size(Normilized_X, axis = 1))
         #print (np.size(Pic, axis = 1))
         while np.size(Pic, axis = 0) < 28:
@@ -106,9 +132,12 @@ def NormalX (X, num_pics):
         while np.size(Pic, axis = 1) < 28:
             Pic = np.concatenate((Pic, np.zeros((28,1))), axis = 1)
             
-        Pic = Pic > np.ones((size_Y, size_X))*0.2;
-        #plt.imshow(Pic, cmap='gray')
-        #plt.show()
+#         Pic = Pic > np.ones((size_Y, size_X))*0.2;
+#         Pic[Pic < 50] = 0
+#         Pic[Pic >= 50] = 255
+#         print (Pic)
+#         plt.imshow(Pic, cmap='gray')
+#         plt.show()
         Normilized_X[j:j+1,:,:] = Pic
         if j % 1000 == 1:
             print ((j-1)/1000)
@@ -120,8 +149,6 @@ batch_size = 128 # in each iteration, we consider 128 training examples at once
 num_epochs = 20 # we iterate twenty times over the entire training set
 #hidden_size = 15 # there will be 512 neurons in both hidden layers
 
-num_train = 60000 # there are 60000 training examples in MNIST
-num_test = 10000 # there are 10000 test examples in MNIST
 
 height, width, depth = 28, 28, 1 # MNIST images are 28x28 and greyscale
 num_classes = 10 # there are 10 classes (1 per digit)
@@ -130,8 +157,19 @@ num_classes = 10 # there are 10 classes (1 per digit)
 X_train = X_train.astype('float32') 
 X_test = X_test.astype('float32')
 
-X_train_N = NormalX (X_train, 60000)
+num_train = 5000 # there are 60000 training examples in MNIST
+num_test = 10000 # there are 10000 test examples in MNIST
+
+X_train = X_train[:num_train].copy()
+y_train = y_train[:num_train].copy()
+
+
+
+X_train_N = NormalX (X_train, num_train)
 X_test_N = NormalX (X_test, 10000)
+
+X_train_R = RotateX (X_train, num_train)
+X_test_R = RotateX (X_test, 10000)
 
 X_train /= 255 # Normalise data to [0, 1] range
 X_test /= 255 # Normalise data to [0, 1] range
@@ -139,11 +177,14 @@ X_test /= 255 # Normalise data to [0, 1] range
 X_train_N /= 255 # Normalise data to [0, 1] range
 X_test_N /= 255 # Normalise data to [0, 1] range
 
-X_train = X_train.reshape(num_train, height * width) # Flatten data to 1D
-X_test = X_test.reshape(num_test, height * width) # Flatten data to 1D
+X_train_R /= 255 # Normalise data to [0, 1] range
+X_test_R /= 255 # Normalise data to [0, 1] range
 
 X_train = X_train.reshape(num_train, height * width) # Flatten data to 1D
 X_test = X_test.reshape(num_test, height * width) # Flatten data to 1D
+
+X_train_R = X_train_R.reshape(num_train, height * width) # Flatten data to 1D
+X_test_R = X_test_R.reshape(num_test, height * width) # Flatten data to 1D
 
 X_train_N = X_train_N.reshape(num_train, height * width) # Flatten data to 1D
 X_test_N = X_test_N.reshape(num_test, height * width) # Flatten data to 1D
@@ -154,8 +195,8 @@ Y_test = np_utils.to_categorical(y_test, num_classes) # One-hot encode the label
 def evaluate_data (X_train, X_test, hidden_size):      
     inp = Input(shape=(height * width,)) # Our input is a 1D vector of size 784
     hidden_1 = Dense(hidden_size, activation='relu')(inp) # First hidden ReLU layer
-    hidden_2 = Dense(hidden_size, activation='relu')(hidden_1) # Second hidden ReLU layer
-    out = Dense(num_classes, activation='softmax')(hidden_2) # Output softmax layer
+#     hidden_2 = Dense(hidden_size, activation='relu')(hidden_1) # Second hidden ReLU layer
+    out = Dense(num_classes, activation='softmax')(hidden_1) # Output softmax layer
     
     model = Model(input=inp, output=out) # To define a model, just specify its input and output layers
     
@@ -172,18 +213,24 @@ def evaluate_data (X_train, X_test, hidden_size):
 
 results = []
 results_n = []
+results_r = []
 horizontal = []
 
-for neurons in range(15, 512, 50):
-    horizontal.append(neurons)
-    results.append(evaluate_data(X_train, X_test, neurons))
-    results_n.append(evaluate_data(X_train_N, X_test_N, neurons))
+for iter in range(10, 30):
+#     neurons_nb = iter**2
+    neurons_nb = iter
+    horizontal.append(neurons_nb)
+    results.append(evaluate_data(X_train, X_test, neurons_nb))
+    results_n.append(evaluate_data(X_train_N, X_test_N, neurons_nb))
+    results_r.append(evaluate_data(X_train_R, X_test_R, neurons_nb))
 
 fig, ax = plt.subplots()
-ax.plot(horizontal, results, horizontal, results_n)
-
-ax.set(xlabel='accurasy', ylabel='hidden layes size',
-       title='orange - normilized')
+ax.plot(horizontal, np.divide(results,results), label="baseline")
+ax.plot(horizontal, np.divide(results_n,results), label="results with rotating and stretching")
+ax.plot(horizontal, np.divide(results_r,results), label="results with rotating")
+ax.set(xlabel='hidden layes size', ylabel='accuracy',
+       title='mnist data accuracy results without and with preprocessing')
+ax.legend()
 ax.grid()
 
 plt.show()
