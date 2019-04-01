@@ -3,17 +3,24 @@
 Some trics for kaggle mnist data recognition competition
 
 ### Dependencies:
-python3
-tensorflow
-keras
-marplotlib
-scipy
+* python3
+* tensorflow
+* keras
+* marplotlib
+* scipy
+
+### Architechture
+	** Input: ** (784;60000) (60000 images shape = 28x28)
+	** Hidden: ** Iteratively changing hidden layer size
+	** Output: ** One hot vector with 10 labels (0..9)
+	
 
 ### Idea:
 
 ![screenshot](screenshots/digits_before.png?raw=true)
 
 Rotate digit to vertical and stretch
+
 
 ![screenshot](screenshots/digits_after.png?raw=true)
 
